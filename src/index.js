@@ -9,6 +9,13 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/task2A', (req, res) => {
+  const a = +req.query.a || 0;
+  const b = +req.query.b || 0;
+  var sum = a+b;
+  res.send(sum.toString());
+});
+
 app.listen(3000, () => {
   console.log('Your app listening on port 3000!');
 });
