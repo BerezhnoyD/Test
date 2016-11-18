@@ -1,22 +1,29 @@
-import express from 'express';
+import express from 'express';    // import all required variables and functions from EXISTING libraries
 import cors from 'cors';
+import fetch from 'node-fetch';
+import PComp from './PC_import';
+import { objectPathResolver} from './resolver'
 
-const app = express();
-app.use(cors());
-app.get('/', (req, res) => {
+                            // assigning all required objects
+const app = express();      // init express
+app.use(cors());            // init cors
+const model = new PComp;
+
+
+app.get('/', (req, res) => {        // this app is giving the default response
   res.json({
     hello: 'JS World',
   });
 });
 
-app.get('/task2A', (req, res) => {
+app.get('/task2A', (req, res) => {     // this app is summing two constants specified in the query
   const a = Number(req.query.a) || 0;
   const b = Number(req.query.b) || 0;
   var sum = a+b;
   res.send(String(sum));
 });
 
-app.get('/task2B', function (req, res)  {
+app.get('/task2B', function (req, res)  {    // this app is reading the name specified in the query
   const a = String(req.query.fullname) ;
   if (!!a)
   {var arr = a.split(' ');
@@ -40,6 +47,39 @@ app.get('/task2B', function (req, res)  {
 else {
   res.send('Invalid fullname');
 }
+});
+
+
+// task3A (1)
+app.get('/task3A/volumes', (req, res) => {
+  if (model.isEmpty()) return res.send('Model is empty', 404);
+
+  let assignHdds = {};
+  model.attributes.hdd.forEach((hdd) => {
+    assignHdds[hdd.volume] = assignHdds[hdd.volume] || 0;
+    assignHdds[hdd.volume] = parseInt(assignHdds[hdd.volume]) + hdd.size + `B`;
+  });
+
+  return res.json(assignHdds);        // возвращение значения
+});
+
+// task3A (pathresolver)
+app.get('/task3A/*?', (req, res) => {
+  req.params[0] = req.params[0] || '';
+
+  if (model.isEmpty()) return res.send('Model is empty', 404);
+
+  let path = req.params[0]
+    .replace(/[.]|[\/]+$/g, '')
+    .replace(/\//g, '.');
+
+  if (path !== 'length') path = path.replace(/length/, '');
+
+  const resultObject = path ? objectPathResolver(path, model.attributes) : model.attributes;
+
+  if (resultObject === undefined) return res.send('Not Found', 404);
+
+  res.json(resultObject);             // возвращение значения
 });
 
 
